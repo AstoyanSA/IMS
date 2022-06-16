@@ -1,0 +1,64 @@
+﻿@page "/products"
+
+@inject NavigationManager NavigationManager
+@inject IViewProductsByNameUseCase ViewProductsByNameUseCase
+@inject IDeleteProductUseCase DeleteProductUseCase
+
+<h3>Список продукции</h3>
+<br/>
+<ViewProductsComponent OnSearchProducts="OnSearchProducts"></ViewProductsComponent>
+<br/>
+@if (listProducts != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Количество</th>
+                <th>Стоимость</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var product in this.listProducts)
+            {
+                <ProductItemComponent 
+                    Product="product"
+                    OnProductDeleted="OnProductDeleted"></ProductItemComponent>
+            }
+        </tbody>
+    </table>    
+}
+<br/>
+<button type="button" class="btn btn-primary" @onclick="AddProduct">Добавить продукт</button>
+
+
+@code {
+    private List<Product>? listProducts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private void OnSearchProducts(List<Product> products)
+    {
+        this.listProducts = products;
+    }
+
+    private void AddProduct()
+    {
+        NavigationManager.NavigateTo("/addproduct");
+    }
+
+    private async Task OnProductDeleted()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        var prods = await ViewProductsByNameUseCase.ExecuteAsync();
+        this.listProducts = prods.ToList();
+    }
+}

@@ -1,0 +1,68 @@
+﻿@page "/purchase"
+
+@inject IPurchaseInventoryUseCase PurchaseInventoryUseCase
+
+<h3>Заказ на покупку</h3>
+<br />
+
+@if (purchaseViewModel != null)
+{
+	<EditForm Model="purchaseViewModel" OnValidSubmit="OnValidSubmit">
+		<DataAnnotationsValidator></DataAnnotationsValidator>
+		<ValidationSummary></ValidationSummary>
+
+		<div class="form-group">
+			<lable for="po">Заказ на покупку</lable>
+			<InputText id="po" class="form-control" @bind-Value="purchaseViewModel.PurchaseOrder"></InputText>
+		</div>
+
+		<div class="form-group">
+			<lable for="inv">Инвернтарь для покупки</lable>
+			<ViewInventoriesComponent 
+				OnSelectInventory="OnSelectInventory"
+				DisplaySearchResult="true"></ViewInventoriesComponent>
+			<InputText id="inv" class="form-control" disabled @bind-Value="purchaseViewModel.InventoryName"></InputText>
+			<input type="hidden" value="@purchaseViewModel.InventoryId">
+			@if (@selectedInventory != null)
+			{
+				<text>Стоимость: </text>
+				@selectedInventory?.Price.ToString("c");
+			}
+		</div>
+
+
+		<div class="form-group">
+			<lable for="qty">Количество</lable>
+			<InputNumber id="qty" class="form-control" @bind-Value="purchaseViewModel.QuantityToPurchase"></InputNumber>
+		</div>
+		<br />
+
+		<button type="submit" class="btn btn-primary">Сохранить</button>
+
+	</EditForm>
+}
+
+@code {
+	private PurchaseViewModel purchaseViewModel= new PurchaseViewModel();
+
+	private Inventory selectedInventory;
+
+	private void OnSelectInventory(Inventory inventory){
+		this.selectedInventory = inventory;
+		purchaseViewModel.InventoryId = inventory.InventoryId;
+		purchaseViewModel.InventoryName = inventory.InventoryName;
+	}
+
+	private async Task OnValidSubmit()
+	{
+		await PurchaseInventoryUseCase.ExecuteAsync(
+				this.purchaseViewModel.PurchaseOrder,
+				this.selectedInventory,
+				this.purchaseViewModel.QuantityToPurchase,
+				"Frank"
+		);
+
+		this.purchaseViewModel = new PurchaseViewModel();
+		this.selectedInventory = null;
+	}
+}

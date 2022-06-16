@@ -1,0 +1,53 @@
+﻿@page "/editinventory/{invId:int}"
+
+@inject NavigationManager NavigationManager
+@inject IViewInventoryByIdUseCase ViewInventoryByIdUseCase
+@inject IEditInventoryUseCase EditInventoryUseCase
+
+<h3>Редактирование инвентаря</h3>
+
+@if(this.inventory != null)
+{
+	<EditForm Model="inventory" OnValidSubmit="OnValidSubmit">
+		<DataAnnotationsValidator></DataAnnotationsValidator>
+		<ValidationSummary></ValidationSummary>
+
+		<div class="form-group">
+			
+			<lable for="name">Название инвенторя</lable>
+			<InputText id="name" class="form-control" @bind-Value="inventory.InventoryName"></InputText>
+
+			<lable for="quantity">Количесвто</lable>
+			<InputNumber id="quantity" class="form-control" @bind-Value="inventory.Quantity"></InputNumber>
+			
+			<lable for="price">Стоимость</lable>
+			<InputNumber id="price" class="form-control" @bind-Value="inventory.Price"></InputNumber>
+
+			<br />
+
+			<button type="submit" class="btn btn-primary">Сохранить</button>
+		</div>
+
+	</EditForm>
+}
+
+@code {
+	[Parameter]
+	public int InvId { get; set; }
+
+	private Inventory? inventory;
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.inventory = await ViewInventoryByIdUseCase.ExecuteAsync(InvId);
+	}
+
+	private async Task OnValidSubmit()
+	{
+		if (this.inventory != null)
+		{
+			await EditInventoryUseCase.ExecuteAsync(this.inventory);
+			NavigationManager.NavigateTo("/inventories");
+		}
+	}
+}
